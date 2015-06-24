@@ -1,7 +1,9 @@
 package de.finnsdevecke.frames;
 
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -10,120 +12,127 @@ import javax.swing.JPasswordField;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 
-public abstract class LoginFrame implements ActionListener {
+import de.finnsdevecke.mainclasses.DBConnect;
 
-	public static char[] passwd;
-	public static String username;
+public class LoginFrame extends JFrame {
 
-	public static String kontonummer;
-	public static char[] pn;
+	private static final long serialVersionUID = 1L;
+	private String username;
 
-	public static int width = 400;
-	public static int height = 300;
+	private String kontonummer;
+	private char[] pn;
 
-	// Erzeugung vom Fenster;
-	public static JFrame frame;
+	private int width = 400;
+	private int height = 300;
 
 	// Erzeugung der Login "seiten";
-	public static JPanel userLogin;
-	public static JPanel adminLogin;
+	private JPanel userLogin;
+	private JPanel adminLogin;
 
 	// Erzeugung der Buttons;
-	public static JButton login_1;
-	public static JButton login;
+	private JButton login_1;
+	private JButton login;
 
 	// Erzeugen der Passwortfelder;
-	public static JPasswordField passwdField_1;
-	public static JPasswordField passwdField;
+	private JPasswordField passwdField_1;
+	private JPasswordField passwdField;
 
 	// Erzeugen der "username" felder;
-	public static JTextField usernmField_1;
-	public static JTextField usernmField;
+	private JTextField usernmField_1;
+	private JTextField usernmField;
 
 	// Erzeugung von tabpane;
-	public static JTabbedPane tabpane;
+	private JTabbedPane tabpane;
+	private DBConnect connection;
 
-	public static void run() {
-		// Frame
-		frame = new JFrame("Login-Panel");
-		frame.setTitle("LoginGUI");
-		frame.setSize(width, height);
+	UserPanel usrPanel = new UserPanel();
 
-		// Buttons;
-		login_1 = new JButton("Login");
-		login = new JButton("Login");
+	public LoginFrame() {
+		this.connection = new DBConnect();
+		this.setTitle("LoginGUI");
+		this.setSize(width, height);
 
-		// Loginfelder;
-		usernmField_1 = new JTextField();
-		usernmField = new JTextField();
-		passwdField_1 = new JPasswordField();
-		passwdField = new JPasswordField();
-
-		usernmField.setText("Username");
-		passwdField.setText("Passwort");
-
-		usernmField_1.setText("Kontonummer");
-		passwdField_1.setText("Passwort");
-
-		// Userlogin;
-		userLogin = new JPanel();
-		userLogin.setLayout(null);
-		login_1.setBounds(150, 190, 70, 30);
-		userLogin.add(login_1);
-		usernmField_1.setBounds(139, 70, 100, 20);
-		passwdField_1.setBounds(139, 106, 100, 20);
-		userLogin.add(usernmField_1);
-		userLogin.add(passwdField_1);
-
-		// Adminlogin;
-		adminLogin = new JPanel();
-		adminLogin.setLayout(null);
-		login.setBounds(150, 190, 70, 30);
-		usernmField.setBounds(139, 70, 100, 20);
-		passwdField.setBounds(139, 106, 100, 20);
-		adminLogin.add(login);
-		adminLogin.add(usernmField);
-		adminLogin.add(passwdField);
-
-		// Hinzufügen zum tabpane;
 		tabpane = new JTabbedPane();
-		tabpane.addTab("User", userLogin);
+		getContentPane().add(tabpane);
+
+		adminLogin = new JPanel();
 		tabpane.addTab("Admin", adminLogin);
 
-		// Tabs zum frame hinzufügen;
-		frame.add(tabpane);
+		userLogin = new JPanel();
+		tabpane.addTab("User", userLogin);
 
-		// Anzeigen von Fenster;
-		frame.setVisible(true);
-
-		// Loginsystem
-		login_1.addActionListener(new ActionListener() {
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				if (e.getSource() == login_1) {
-					passwd = passwdField_1.getPassword();
-					username = usernmField_1.getText();
-					String password = String.valueOf(passwd);
-					System.out.println(password + " - " + username);
+		login_1 = new JButton("Login");
+		login_1.setBounds(150, 190, 70, 30);
+		login_1.addActionListener(e -> {
+			pn = passwdField_1.getPassword();
+			kontonummer = usernmField_1.getText();
+			String pin = new String(pn);
+			System.out.println(pin + " - " + kontonummer);
+			String sql = "SELECT * FROM kontodaten WHERE Kontonummer=? AND Pinnummer=?";
+			PreparedStatement ps;
+			ResultSet rs = null;
+			Connection connect = null;
+			try {
+				connect = connection.connect();
+				connect.setAutoCommit(false);
+				ps = connect.prepareStatement(sql);
+				ps.setString(1, kontonummer);
+				ps.setString(2, pin);
+				rs = ps.executeQuery();
+				if (rs.next()) {
+					System.out.println("Success");
+					this.setVisible(false);
+					usrPanel.setVisible(true);
+					// Aktionen...
+				} else {
+					System.out.println("Fail.");
+				}
+			} catch (Exception ex) {
+				System.out.println("Error");
+				ex.printStackTrace();
+			} finally {
+				if (connect != null) {
+					try {
+						if (rs != null) {
+							rs.close();
+						}
+						connect.setAutoCommit(true);
+						connect.close();
+					} catch (SQLException e1) {
+						e1.printStackTrace();
+					}
 				}
 			}
-
 		});
+		userLogin.setLayout(null);
+		userLogin.add(login_1);
 
-		login.addActionListener(new ActionListener() {
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				if (e.getSource() == login) {
-					pn = passwdField.getPassword();
-					kontonummer = usernmField.getText();
-					String pin = String.valueOf(pn);
-					System.out.println(pin + " - " + kontonummer);
-				}
-
-			}
-
+		login = new JButton("Login");
+		login.setMnemonic('l');
+		login.setBounds(150, 190, 70, 30);
+		login.addActionListener(e -> {
+			char[] passwd = passwdField.getPassword();
+			username = usernmField.getText();
+			String password = new String(passwd);
+			System.out.println(password + " " + username);
 		});
+		adminLogin.setLayout(null);
+
+		usernmField = new JTextField("Username");
+		adminLogin.add(usernmField);
+		usernmField.setBounds(150, 80, 70, 20);
+
+		passwdField = new JPasswordField("Passwort");
+		adminLogin.add(passwdField);
+		passwdField.setBounds(150, 120, 70, 20);
+		adminLogin.add(login);
+
+		usernmField_1 = new JTextField("Kontonummer");
+		usernmField_1.setBounds(150, 80, 70, 20);
+		userLogin.add(usernmField_1);
+
+		passwdField_1 = new JPasswordField("Passwort");
+		passwdField_1.setBounds(150, 120, 70, 20);
+		userLogin.add(passwdField_1);
 	}
 }
