@@ -14,7 +14,7 @@ public class DBConnect {
 		} catch (ClassNotFoundException cnfe) {
 			System.out.println("Connection Fail" + cnfe);
 		}
-		String url = "jdbc:mysql://localhost:3306/userdb";
+		String url = "jdbc:mysql://localhost:3306/bankdb";
 		try {
 			DBConnection = DriverManager.getConnection(url, "root", "");
 			System.out.println("Database Connected!");

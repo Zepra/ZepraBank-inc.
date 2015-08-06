@@ -63,6 +63,7 @@ public class LoginFrame extends JFrame {
 
 		login_1 = new JButton("Login");
 		login_1.setBounds(150, 190, 70, 30);
+		// Login 1
 		login_1.addActionListener(e -> {
 			pn = passwdField_1.getPassword();
 			kontonummer = usernmField_1.getText();
@@ -84,6 +85,7 @@ public class LoginFrame extends JFrame {
 					this.setVisible(false);
 					usrPanel.setVisible(true);
 					// Aktionen...
+
 				} else {
 					System.out.println("Fail.");
 				}
@@ -104,18 +106,54 @@ public class LoginFrame extends JFrame {
 				}
 			}
 		});
+		// ENDE
 		userLogin.setLayout(null);
 		userLogin.add(login_1);
 
 		login = new JButton("Login");
 		login.setMnemonic('l');
 		login.setBounds(150, 190, 70, 30);
+		// login 2
 		login.addActionListener(e -> {
 			char[] passwd = passwdField.getPassword();
 			username = usernmField.getText();
 			String password = new String(passwd);
 			System.out.println(password + " " + username);
+			String sql = "SELECT * FROM admin WHERE Nutzername=? AND Passwort=?";
+			PreparedStatement ps;
+			ResultSet rs = null;
+			Connection connect = null;
+			try {
+				connect = connection.connect();
+				connect.setAutoCommit(false);
+				ps = connect.prepareStatement(sql);
+				ps.setString(1, username);
+				ps.setString(2, password);
+				rs = ps.executeQuery();
+				if (rs.next()) {
+					System.out.println("Success");
+					// Aktionen...
+				} else {
+					System.out.println("Fail.");
+				}
+			} catch (Exception ex) {
+				System.out.println("Error");
+				ex.printStackTrace();
+			} finally {
+				if (connect != null) {
+					try {
+						if (rs != null) {
+							rs.close();
+						}
+						connect.setAutoCommit(true);
+						connect.close();
+					} catch (SQLException e1) {
+						e1.printStackTrace();
+					}
+				}
+			}
 		});
+		// Ende
 		adminLogin.setLayout(null);
 
 		usernmField = new JTextField("Username");

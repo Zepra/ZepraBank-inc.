@@ -1,5 +1,7 @@
 package de.finnsdevecke.frames;
 
-public class AdminPanel {
+import javax.swing.JFrame;
+
+public class AdminPanel extends JFrame {
 
 }
